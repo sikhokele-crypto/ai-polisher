@@ -16,6 +16,7 @@ export default function PromptPolisher() {
   const [secondsLeft, setSecondsLeft] = useState(15);
   const [hasResult, setHasResult] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [history, setHistory] = useState<{ original: string; polished: string }[]>([]);
   const geminiResultRef = useRef<string | null>(null);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -41,12 +42,14 @@ export default function PromptPolisher() {
 
   const handlePolish = () => {
     setHasResult(false);
-    setPolishedPrompt("");
+    setPolishedPrompt("");setHistory(prev => [{ original: messyIdea, polished: data.polished }, ...prev]);
+
     setSecondsLeft(15);
     geminiResultRef.current = null;
     setShowAd(true);
 
     fetch("/api/polish", {
+
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messyIdea, tone, imageDataUrl }),
@@ -596,7 +599,22 @@ export default function PromptPolisher() {
                     <span>Calibrating tone &amp; structure</span>
                     <span style={{ color: "#d4d4d4" }}>
                       {Math.max(secondsLeft, 0)}s remaining
-                    </span>
+                    </spa{history.length > 0 && (
+  <div className="mt-12 w-full max-w-2xl border-t border-gray-800 pt-8">
+    <h2 className="text-xl font-bold text-white mb-6">Recent Polishes</h2>
+    <div className="space-y-4">
+      {history.map((item, index) => (
+        <div key={index} className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
+          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Original</p>
+          <p className="text-gray-300 mb-3">{item.original}</p>
+          <p className="text-xs font-bold text-blue-500 uppercase mb-1">Polished</p>
+          <p className="text-white">{item.polished}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}n>
+
                   </div>
                 </div>
               </div>
