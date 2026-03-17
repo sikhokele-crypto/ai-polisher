@@ -21,6 +21,7 @@ export default function PromptPolisher() {
   const geminiResultRef = useRef<string | null>(null);
 
   const handlePolish = async () => {
+    // 1. Reset states for new polish
     setHasResult(false);
     setPolishedPrompt("");
     setSecondsLeft(15);
@@ -39,7 +40,7 @@ export default function PromptPolisher() {
         setPolishedPrompt(data.polished);
         setHasResult(true);
 
-        // This is the specific fix for lines 44-46
+        // 2. Add to history without squashing lines
         setHistory((prev) => [
           { original: messyIdea, polished: data.polished },
           ...prev,
@@ -56,7 +57,7 @@ export default function PromptPolisher() {
         <h1 className="text-4xl font-bold text-center">AI Prompt Polisher</h1>
         
         <textarea 
-          className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+          className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
           rows={5}
           placeholder="Enter your messy idea here..."
           value={messyIdea}
@@ -74,7 +75,7 @@ export default function PromptPolisher() {
 
         {hasResult && (
           <div className="mt-8 p-6 bg-gray-900 border border-blue-500/30 rounded-2xl animate-in fade-in slide-in-from-bottom-4">
-            <p className="text-gray-200 leading-relaxed">{polishedPrompt}</p>
+            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{polishedPrompt}</p>
           </div>
         )}
 
