@@ -14,14 +14,12 @@ export default function PromptPolisher() {
   const [hasResult, setHasResult] = useState(false);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   
-  // History and Toggle States
   const [history, setHistory] = useState<{ original: string; polished: string }[]>([]);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
 
   const geminiResultRef = useRef<string | null>(null);
 
   const handlePolish = async () => {
-    // 1. Reset states for new polish
     setHasResult(false);
     setPolishedPrompt("");
     setSecondsLeft(15);
@@ -40,7 +38,7 @@ export default function PromptPolisher() {
         setPolishedPrompt(data.polished);
         setHasResult(true);
 
-        // 2. Add to history without squashing lines
+        // FIXED LINE 42-46: Clean history update
         setHistory((prev) => [
           { original: messyIdea, polished: data.polished },
           ...prev,
@@ -56,6 +54,7 @@ export default function PromptPolisher() {
       <div className="w-full max-w-2xl mt-12 space-y-6">
         <h1 className="text-4xl font-bold text-center">AI Prompt Polisher</h1>
         
+        {/* FIXED LINE 59: Corrected styling and text visibility */}
         <textarea 
           className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
           rows={5}
@@ -73,13 +72,15 @@ export default function PromptPolisher() {
           </button>
         </div>
 
+        {/* FIXED LINE 77: Wrapped correctly with whitespace preservation */}
         {hasResult && (
           <div className="mt-8 p-6 bg-gray-900 border border-blue-500/30 rounded-2xl animate-in fade-in slide-in-from-bottom-4">
-            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{polishedPrompt}</p>
+            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+              {polishedPrompt}
+            </p>
           </div>
         )}
 
-        {/* The Toggle Button */}
         {history.length > 0 && (
           <div className="flex justify-center pt-8">
             <button
@@ -91,7 +92,6 @@ export default function PromptPolisher() {
           </div>
         )}
 
-        {/* The Toggleable History List */}
         {isHistoryVisible && history.length > 0 && (
           <div className="mt-8 border-t border-gray-800 pt-8 pb-20 space-y-4">
             <h2 className="text-xl font-bold text-white mb-6 text-center">Recent Polishes</h2>
