@@ -1,146 +1,90 @@
 "use client";
+import { useState } from "react";
 
-import { useEffect, useRef, useState } from "react";
+export default function SoccerDashboard() {
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [isVip, setIsVip] = useState(false); // Toggle this to true to show predictions
 
-const TONES = ["Professional", "Creative", "Urgent"] as const;
-type Tone = (typeof TONES)[number];
+  const matches = [
+    { id: 1, home: "Arsenal", away: "Liverpool", time: "20:45", league: "Premier League", winner: "Home Win", corners: "Over 9.5", btts: "Yes" },
+    { id: 2, home: "Real Madrid", away: "Barcelona", time: "21:00", league: "La Liga", winner: "Draw", corners: "Under 10.5", btts: "Yes" },
+  ];
 
-export default function PromptPolisher() {
-  const [messyIdea, setMessyIdea] = useState("");
-  const [tone, setTone] = useState<Tone>("Professional");
-  const [polishedPrompt, setPolishedPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
-  const [hasResult, setHasResult] = useState(false);
-  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
-  
-  const [history, setHistory] = useState<{ original: string; polished: string }[]>([]);
-  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
-
-  const handlePolish = async () => {
-    if (!messyIdea.trim()) return;
-    
-    setIsLoading(true); // Start loading
-    setHasResult(false);
-    setPolishedPrompt("");
-
-    try {
-      const response = await fetch("/api/polish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messyIdea, tone, imageDataUrl }),
-      });
-
-      const data = await response.json();
-
-      if (data.polished) {
-        setPolishedPrompt(data.polished);
-        setHasResult(true);
-        setHistory((prev) => [
-          { original: messyIdea, polished: data.polished },
-          ...prev,
-        ]);
-      }
-    } catch (error) {
-      console.error("Error polishing prompt:", error);
-    } finally {
-      setIsLoading(false); // Stop loading
-    }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(polishedPrompt);
-    alert("Copied to clipboard!");
+  const handleWhatsAppPay = () => {
+    // Replace with your actual number
+    const myNumber = "27123456789"; 
+    const message = encodeURIComponent("I want to buy the R20 Daily Pass for GOALPRO VIP Predictions.");
+    window.open(`https://wa.me/${myNumber}?text=${message}`, "_blank");
   };
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 flex flex-col items-center">
-      <div className="w-full max-w-2xl mt-12 space-y-6">
-        <h1 className="text-4xl font-bold text-center tracking-tight">AI Prompt Polisher</h1>
-        
-        {/* Tone Selector */}
-        <div className="flex justify-center gap-2">
-          {TONES.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTone(t)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                tone === t ? "bg-blue-600 text-white" : "bg-gray-900 text-gray-400 hover:bg-gray-800"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative">
-          <textarea 
-            className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
-            rows={6}
-            placeholder="Describe your idea in a messy way..."
-            value={messyIdea}
-            onChange={(e) => setMessyIdea(e.target.value)}
-          />
-          {messyIdea && (
-            <button 
-              onClick={() => setMessyIdea("")}
-              className="absolute top-3 right-3 text-gray-500 hover:text-white text-xs"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
-        <div className="flex justify-center">
-          <button 
-            onClick={handlePolish}
-            disabled={isLoading || !messyIdea}
-            className={`px-12 py-4 rounded-full font-bold text-lg transition-all shadow-lg ${
-              isLoading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20"
-            }`}
-          >
-            {isLoading ? "Polishing..." : "Polish Prompt"}
+    <main className="min-h-screen bg-[#0f172a] text-slate-100 p-4">
+      <nav className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
+        <h1 className="text-2xl font-black text-blue-500 italic">GOALPRO</h1>
+        {!isVip && (
+          <button onClick={() => setShowPaywall(true)} className="bg-blue-600 px-4 py-2 rounded-lg font-bold text-sm animate-pulse">
+            GET VIP ACCESS
           </button>
-        </div>
+        )}
+      </nav>
 
-        {hasResult && (
-          <div className="mt-8 p-6 bg-gray-900 border border-blue-500/30 rounded-2xl animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Polished Result</span>
-              <button onClick={copyToClipboard} className="text-xs text-gray-400 hover:text-white underline">
-                Copy text
-              </button>
+      <div className="grid gap-4">
+        {matches.map((match) => (
+          <div key={match.id} className="bg-[#1e293b] rounded-2xl border border-slate-800 p-4 shadow-xl">
+            <div className="flex justify-between text-[10px] text-slate-500 mb-2 uppercase font-bold tracking-widest">
+              <span>{match.league}</span>
+              <span>{match.time}</span>
             </div>
-            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-              {polishedPrompt}
-            </p>
-          </div>
-        )}
+            <div className="flex justify-between items-center mb-6 px-4">
+              <span className="font-bold text-lg">{match.home}</span>
+              <span className="text-slate-600 italic">VS</span>
+              <span className="font-bold text-lg">{match.away}</span>
+            </div>
 
-        {history.length > 0 && (
-          <div className="flex justify-center pt-8">
-            <button
-              onClick={() => setIsHistoryVisible(!isHistoryVisible)}
-              className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition-all text-sm font-bold border border-gray-700"
-            >
-              {isHistoryVisible ? "Hide History" : "Show History"}
-            </button>
-          </div>
-        )}
-
-        {isHistoryVisible && (
-          <div className="mt-8 border-t border-gray-800 pt-8 pb-20 space-y-4">
-            <h2 className="text-xl font-bold text-white mb-6 text-center">Recent Polishes</h2>
-            {history.map((item, index) => (
-              <div key={index} className="p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
-                <p className="text-xs font-bold text-gray-500 uppercase mb-1">Original</p>
-                <p className="text-gray-400 text-sm mb-3">{item.original}</p>
-                <p className="text-xs font-bold text-blue-500 uppercase mb-1">Polished</p>
-                <p className="text-white text-sm">{item.polished}</p>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-slate-900/50 p-2 rounded-lg text-center">
+                <p className="text-[8px] text-slate-500 uppercase">1X2 Tip</p>
+                <p className="text-blue-400 font-bold text-xs">{match.winner}</p>
               </div>
-            ))}
+              
+              {/* CORNERS TIP */}
+              <div className={`p-2 rounded-lg text-center ${isVip ? 'bg-slate-900/50' : 'bg-blue-500/10 blur-[3px]'}`}>
+                <p className="text-[8px] text-slate-500 uppercase">Corners</p>
+                <p className="text-emerald-400 font-bold text-xs">{isVip ? match.corners : "??"}</p>
+              </div>
+
+              {/* BTTS TIP */}
+              <div className={`p-2 rounded-lg text-center ${isVip ? 'bg-slate-900/50' : 'bg-blue-500/10 blur-[3px]'}`}>
+                <p className="text-[8px] text-slate-500 uppercase">BTTS</p>
+                <p className="text-orange-400 font-bold text-xs">{isVip ? match.btts : "??"}</p>
+              </div>
+            </div>
+
+            {!isVip && (
+              <button onClick={() => setShowPaywall(true)} className="w-full mt-4 py-2 text-[9px] uppercase font-black text-blue-500 tracking-tighter hover:text-blue-400 transition-colors">
+                Unlock VIP Markets (Corners/BTTS) →
+              </button>
+            )}
           </div>
-        )}
+        ))}
       </div>
+
+      {/* PAYWALL MODAL */}
+      {showPaywall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+          <div className="bg-[#1e293b] w-full max-w-sm rounded-3xl p-8 border border-blue-500/40 shadow-2xl">
+            <h2 className="text-xl font-black text-center mb-6">VIP ACCESS</h2>
+            <button 
+              onClick={handleWhatsAppPay}
+              className="w-full py-4 bg-blue-600 rounded-2xl font-black text-sm flex justify-between px-6 items-center hover:bg-blue-700 active:scale-95 transition-all mb-4"
+            >
+              <span>DAILY PASS</span>
+              <span>R20.00</span>
+            </button>
+            <button onClick={() => setShowPaywall(false)} className="w-full text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Maybe Later</button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
