@@ -9,22 +9,19 @@ export default function PromptPolisher() {
   const [messyIdea, setMessyIdea] = useState("");
   const [tone, setTone] = useState<Tone>("Professional");
   const [polishedPrompt, setPolishedPrompt] = useState("");
-  const [showAd, setShowAd] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   const [hasResult, setHasResult] = useState(false);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   
-  // FIXED LINE 17: Properly initialized history and visibility states
   const [history, setHistory] = useState<{ original: string; polished: string }[]>([]);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
 
-  const geminiResultRef = useRef<string | null>(null);
-
   const handlePolish = async () => {
+    if (!messyIdea.trim()) return;
+    
+    setIsLoading(true); // Start loading
     setHasResult(false);
     setPolishedPrompt("");
-    setSecondsLeft(15);
-    setShowAd(true);
 
     try {
       const response = await fetch("/api/polish", {
@@ -38,7 +35,6 @@ export default function PromptPolisher() {
       if (data.polished) {
         setPolishedPrompt(data.polished);
         setHasResult(true);
-
         setHistory((prev) => [
           { original: messyIdea, polished: data.polished },
           ...prev,
@@ -46,41 +42,80 @@ export default function PromptPolisher() {
       }
     } catch (error) {
       console.error("Error polishing prompt:", error);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(polishedPrompt);
+    alert("Copied to clipboard!");
   };
 
   return (
     <main className="min-h-screen bg-black text-white p-4 flex flex-col items-center">
       <div className="w-full max-w-2xl mt-12 space-y-6">
-        <h1 className="text-4xl font-bold text-center">AI Prompt Polisher</h1>
+        <h1 className="text-4xl font-bold text-center tracking-tight">AI Prompt Polisher</h1>
         
-        <textarea 
-          className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
-          rows={5}
-          placeholder="Enter your messy idea here..."
-          value={messyIdea}
-          onChange={(e) => setMessyIdea(e.target.value)}
-        />
+        {/* Tone Selector */}
+        <div className="flex justify-center gap-2">
+          {TONES.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTone(t)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                tone === t ? "bg-blue-600 text-white" : "bg-gray-900 text-gray-400 hover:bg-gray-800"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <textarea 
+            className="w-full p-4 bg-gray-900 border border-gray-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
+            rows={6}
+            placeholder="Describe your idea in a messy way..."
+            value={messyIdea}
+            onChange={(e) => setMessyIdea(e.target.value)}
+          />
+          {messyIdea && (
+            <button 
+              onClick={() => setMessyIdea("")}
+              className="absolute top-3 right-3 text-gray-500 hover:text-white text-xs"
+            >
+              Clear
+            </button>
+          )}
+        </div>
 
         <div className="flex justify-center">
           <button 
             onClick={handlePolish}
-            className="px-12 py-4 bg-blue-600 hover:bg-blue-700 rounded-full font-bold text-lg transition-all shadow-lg shadow-blue-500/20"
+            disabled={isLoading || !messyIdea}
+            className={`px-12 py-4 rounded-full font-bold text-lg transition-all shadow-lg ${
+              isLoading ? "bg-gray-700 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20"
+            }`}
           >
-            Polish Prompt
+            {isLoading ? "Polishing..." : "Polish Prompt"}
           </button>
         </div>
 
-        {/* FIXED LINE 74: Result container with proper whitespace logic */}
         {hasResult && (
           <div className="mt-8 p-6 bg-gray-900 border border-blue-500/30 rounded-2xl animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Polished Result</span>
+              <button onClick={copyToClipboard} className="text-xs text-gray-400 hover:text-white underline">
+                Copy text
+              </button>
+            </div>
             <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
               {polishedPrompt}
             </p>
           </div>
         )}
 
-        {/* FIXED LINE 83: Toggle Button logic */}
         {history.length > 0 && (
           <div className="flex justify-center pt-8">
             <button
@@ -92,8 +127,7 @@ export default function PromptPolisher() {
           </div>
         )}
 
-        {/* FIXED LINE 95: History List container and mapping */}
-        {isHistoryVisible && history.length > 0 && (
+        {isHistoryVisible && (
           <div className="mt-8 border-t border-gray-800 pt-8 pb-20 space-y-4">
             <h2 className="text-xl font-bold text-white mb-6 text-center">Recent Polishes</h2>
             {history.map((item, index) => (
